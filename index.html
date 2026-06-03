@@ -116,17 +116,20 @@
     </div>
 
     <div id="chat-container">
-        </div>
+        <!-- Injetado dinamicamente via JS -->
+    </div>
 
     <div id="controls">
         <div id="status">Pronto para iniciar as atividades práticas.</div>
         
+        <!-- Painel Aba Vendas (Exibe câmera) -->
         <div id="panel-vendas" class="input-panel active">
             <label class="upload-label" for="imageInput">📷
                 <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="uploadImage(this)">
             </label>
         </div>
 
+        <!-- Painel Aba Inovação (Exibe Chat de Texto) -->
         <div id="panel-inovacao" class="input-panel">
             <div class="text-input-group">
                 <input type="text" id="mvpPrompt" placeholder="Descreva o MVP ou brinde da sua startup...">
@@ -146,10 +149,11 @@
         const status = document.getElementById('status');
 
         const instructions = {
-            vendas: `<div class="msg-wrapper teacher"><span class="label">Manual de Vendas</span><div class="msg">1. Tire foto de um anúncio comercial ou panfleto.\n2. Envie no botão da câmera abaixo para analisar conformidade com o CDC.</div></div>`,
-            inovacao: `<div class="msg-wrapper teacher"><span class="label">Manual de Inovação</span><div class="msg">1. Digite a ideia do produto ou brinde da sua startup.\n2. O sistema gerará o código OpenSCAD para você exportar como arquivo STL e imprimir em 3D na escola!</div></div>`
+            vendas: `<div class="msg-wrapper teacher"><span class="label">Manual de Vendas</span><div class="msg">1. Tire foto de um anúncio comercial ou panfleto.\\n2. Envie no botão da câmera abaixo para analisar conformidade com o CDC.</div></div>`,
+            inovacao: `<div class="msg-wrapper teacher"><span class="label">Manual de Inovação</span><div class="msg">1. Digite a ideia do produto ou brinde da sua startup.\\n2. O sistema gerará o código OpenSCAD para você exportar como arquivo STL e imprimir em 3D na escola!</div></div>`
         };
 
+        // Carrega as instruções da primeira aba
         chatContainer.innerHTML = instructions.vendas;
 
         function populateVoiceList() {
@@ -168,12 +172,14 @@
         function switchTab(tab) {
             currentTab = tab;
             window.speechSynthesis.cancel();
+            
+            // Limpa as classes ativas
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.input-panel').forEach(p => p.classList.remove('active'));
             
             if(tab === 'vendas') {
                 document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('panel-vendas').add('active');
+                document.getElementById('panel-vendas').classList.add('active');
                 chatContainer.innerHTML = instructions.vendas;
                 status.innerText = "Pronto para auditar peças publicitárias.";
             } else {
