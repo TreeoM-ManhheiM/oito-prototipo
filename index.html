@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oito Protótipos - Laboratório Integrado SEDUC</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f7f9fa; color: #2c3e50; padding: 0; margin: 0;
+            display: flex; flex-direction: column; height: 100vh;
+        }
+        header {
+            background-color: #ffffff; padding: 14px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #e1e8ed; z-index: 10;
+        }
+        h1 { margin: 0; color: #1e7e34; font-size: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .clear-btn {
+            background: #e74c3c; color: white; border: none; padding: 6px 14px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px;
+        }
+
+        #nav-tabs {
+            display: flex; background: #ffffff; border-bottom: 1px solid #d1d9e0;
+        }
+        .tab-btn {
+            flex: 1; padding: 12px; border: none; background: #f1f5f8;
+            font-weight: bold; font-size: 13px; color: #718096; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #ffffff; color: #1e7e34; border-bottom: 3px solid #1e7e34;
+        }
+
+        #settings-bar {
+            background-color: #f1f5f8; padding: 6px 20px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 11px;
+            border-bottom: 1px solid #d1d9e0;
+        }
+        .setting-item { display: flex; align-items: center; gap: 6px; }
+        select, input[type="range"] {
+            background: #ffffff; border: 1px solid #cbd5e0; border-radius: 4px; padding: 3px; color: #2c3e50;
+        }
+
+        #chat-container {
+            flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px;
+        }
+        
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 95%; animation: fadeIn 0.2s ease; }
+        .msg-wrapper.user { align-self: flex-end; align-items: flex-end; }
+        .msg-wrapper.teacher { align-self: flex-start; align-items: flex-start; width: 100%; }
+
+        .msg { padding: 14px; border-radius: 6px; font-size: 14px; line-height: 1.6; word-wrap: break-word; }
+        .user .msg { background: #ebf5ff; color: #2b6cb0; border: 1px solid #bee3f8; font-weight: bold; }
+        
+        .teacher .msg { 
+            background: #ffffff; color: #1a202c; border: 1px solid #b2c2d1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); font-family: monospace; font-size: 13px; white-space: pre-wrap;
+        }
+        
+        .label { font-size: 10px; color: #718096; margin-bottom: 3px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+
+        #controls {
+            padding: 12px 20px 25px 20px; background-color: #ffffff; border-top: 2px solid #e1e8ed;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+
+        .input-panel { display: none; width: 100%; text-align: center; }
+        .input-panel.active { display: block; }
+
+        .upload-label {
+            width: 60px; height: 60px; border-radius: 50%; border: 2px solid #1e7e34;
+            background: #ffffff; color: #1e7e34; font-size: 24px; cursor: pointer;
+            display: inline-flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 10px rgba(30, 126, 52, 0.15);
+        }
+
+        .text-input-group { display: flex; gap: 8px; width: 100%; max-width: 500px; margin: 0 auto; }
+        .text-input-group input {
+            flex: 1; padding: 10px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px;
+        }
+        .text-input-group button {
+            background: #1e7e34; color: white; border: none; padding: 0 16px; border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+
+        #status { font-size: 12px; color: #4a5568; font-weight: bold; min-height: 18px; }
+        .speaking-indicator { display: none; color: #2f855a; font-size: 12px; font-weight: bold; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>OITO PROTÓTIPOS - LAB INTEGRADO SEDUC 📊</h1>
+        <button class="clear-btn" onclick="clearChat()">Limpar Prancheta</button>
+    </header>
+
+    <div id="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('vendas')">TÉCNICO EM VENDAS (CDC)</button>
+        <button class="tab-btn" onclick="switchTab('inovacao')">INOVAÇÃO E EMPREENDEDORISMO</button>
+    </div>
+
+    <div id="settings-bar">
+        <div class="setting-item">
+            <label for="voiceSelect">Professor(a):</label>
+            <select id="voiceSelect"><option value="">Carregando vozes...</option></select>
+        </div>
+        <div class="setting-item">
+            <label for="rateControl">Velocidade:</label>
+            <input type="range" id="rateControl" min="0.8" max="1.6" value="1.0" step="0.1">
+        </div>
+    </div>
+
+    <div id="chat-container">
+        </div>
+
+    <div id="controls">
+        <div id="status">Pronto para iniciar as atividades práticas.</div>
+        
+        <div id="panel-vendas" class="input-panel active">
+            <label class="upload-label" for="imageInput">📷
+                <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="uploadImage(this)">
+            </label>
+        </div>
+
+        <div id="panel-inovacao" class="input-panel">
+            <div class="text-input-group">
+                <input type="text" id="mvpPrompt" placeholder="Descreva o MVP ou brinde da sua startup...">
+                <button onclick="generateMvp()">Gerar 3D</button>
+            </div>
+        </div>
+
+        <div class="speaking-indicator" id="speakingIndicator">🔊 Avaliação do Professor em reprodução...</div>
+    </div>
+
+    <script>
+        let ptVoices = [];
+        let currentTab = 'vendas';
+        const voiceSelect = document.getElementById('voiceSelect');
+        const rateControl = document.getElementById('rateControl');
+        const chatContainer = document.getElementById('chat-container');
+        const status = document.getElementById('status');
+
+        const instructions = {
+            vendas: `<div class="msg-wrapper teacher"><span class="label">Manual de Vendas</span><div class="msg">1. Tire foto de um anúncio comercial ou panfleto.\n2. Envie no botão da câmera abaixo para analisar conformidade com o CDC.</div></div>`,
+            inovacao: `<div class="msg-wrapper teacher"><span class="label">Manual de Inovação</span><div class="msg">1. Digite a ideia do produto ou brinde da sua startup.\n2. O sistema gerará o código OpenSCAD para você exportar como arquivo STL e imprimir em 3D na escola!</div></div>`
+        };
+
+        chatContainer.innerHTML = instructions.vendas;
+
+        function populateVoiceList() {
+            ptVoices = window.speechSynthesis.getVoices().filter(v => v.lang.includes('pt'));
+            voiceSelect.innerHTML = '';
+            ptVoices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.textContent = voice.name; option.value = index;
+                if (voice.name.toUpperCase().includes('GOOGLE') || voice.name.toUpperCase().includes('FRANCISCA')) option.selected = true;
+                voiceSelect.appendChild(option);
+            });
+        }
+        populateVoiceList();
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoiceList;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            window.speechSynthesis.cancel();
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.input-panel').forEach(p => p.classList.remove('active'));
+            
+            if(tab === 'vendas') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('panel-vendas').add('active');
+                chatContainer.innerHTML = instructions.vendas;
+                status.innerText = "Pronto para auditar peças publicitárias.";
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('panel-inovacao').classList.add('active');
+                chatContainer.innerHTML = instructions.inovacao;
+                status.innerText = "Pronto para gerar modelos de MVPs tridimensionais.";
+            }
+        }
+
+        function clearChat() {
+            chatContainer.innerHTML = instructions[currentTab];
+            window.speechSynthesis.cancel();
+            status.innerText = "Pronto para novas atividades.";
+        }
+
+        function addMessage(text, sender, labelName) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-wrapper ${sender}`;
+            const lbl = document.createElement('span');
+            lbl.className = 'label'; lbl.innerText = labelName;
+            const msg = document.createElement('div');
+            msg.className = 'msg'; msg.innerText = text;
+            wrapper.appendChild(lbl); wrapper.appendChild(msg);
+            chatContainer.appendChild(wrapper);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function uploadImage(input) {
+            if (!input.files || !input.files[0]) return;
+            status.innerText = "Auditando publicidade com a IA... ⚙️";
+            window.speechSynthesis.cancel();
+
+            const formData = new FormData();
+            formData.append('image', input.files[0]);
+
+            try {
+                const response = await fetch('/analyze-image', { method: 'POST', body: formData });
+                const data = await response.json();
+                addMessage(`[Imagem do Aluno]: ${input.files[0].name}`, 'user', 'Arquivo');
+                addMessage(data.teacher_response_chat, 'teacher', 'Relatório de Conformidade CDC');
+                status.innerText = "Análise Concluída.";
+                speakText(data.teacher_response_audio);
+            } catch (e) {
+                status.innerText = "Erro ao processar imagem.";
+            }
+            input.value = ''; 
+        }
+
+        async function generateMvp() {
+            const promptInput = document.getElementById('mvpPrompt');
+            const promptVal = promptInput.value.trim();
+            if (!promptVal) return;
+
+            status.innerText = "Modelando protótipo tridimensional... ⚙️";
+            window.speechSynthesis.cancel();
+            addMessage(promptVal, 'user', 'Ideia de MVP do Aluno');
+            promptInput.value = '';
+
+            try {
+                const response = await fetch('/generate-mvp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_prompt: promptVal })
+                });
+                const data = await response.json();
+                addMessage(data.teacher_response_chat, 'teacher', 'Especificação da Engenharia de Protótipos');
+                status.innerText = "Modelo pronto para compilação.";
+                speakText(data.teacher_response_audio);
+            } catch (e) {
+                status.innerText = "Erro ao gerar o modelo 3D.";
+            }
+        }
+
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = parseFloat(rateControl.value);
+            if (ptVoices.length > 0) utterance.voice = ptVoices[voiceSelect.value];
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
