@@ -16,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inicia o cliente da API do Groq utilizando a nova chave configurada no Render
+# Inicia o cliente da API do Groq utilizando a chave configurada no Render
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 # Filtros de Segurança e Moderação Escolar da SEDUC
@@ -79,7 +79,7 @@ async def analyze_image_endpoint(image: UploadFile = File(...)):
                     ]
                 }
             ],
-            model="llama-4-scout-17b-16e-instruct", # Atualizado para o modelo ativo com suporte visual
+            model="llama-3.2-11b-vision-preview", # Modelo de visão oficial e disponível
         )
         full_response = chat_completion.choices[0].message.content
 
@@ -105,10 +105,10 @@ async def analyze_image_endpoint(image: UploadFile = File(...)):
 async def generate_mvp_endpoint(request: MvpRequest):
     prompt_limpo = request.user_prompt.lower()
     
-    # Validação prévia da lista negra da SEDUC
+    # Validação prévia de segurança na lista negra
     if any(termo in prompt_limpo for termo in TERMOS_PROIBIDOS):
         return {
-            "teacher_response_chat": "🚨 ALERTA DE SEGURANÇA: O pedido contém termos inadequados ou que violam as diretrizes do ambiente escolar.",
+            "teacher_response_chat": "🚨 ALERTA DE SEGURANÇA: O pedido contém termos inadequados ou que violam as diretrizes do ambiente escolar da SEDUC.",
             "teacher_response_audio": "Atenção! Seu pedido foi bloqueado por violar as regras de segurança do laboratório."
         }
     
@@ -136,7 +136,7 @@ async def generate_mvp_endpoint(request: MvpRequest):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.user_prompt}
             ],
-            model="llama-4-scout-17b-16e-instruct",
+            model="llama-3.2-11b-vision-preview", # Utilizando o mesmo motor estável para texto
             temperature=0.2
         )
         full_response = chat_completion.choices[0].message.content
