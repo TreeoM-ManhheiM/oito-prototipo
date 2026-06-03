@@ -133,17 +133,15 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    // 1. Adiciona a caixa com a justificativa comercial do MVP
                     const teacherWrapper = addMessage(data.justificativa, 'teacher', 'Análise Comercial do MVP');
                     
-                    // 2. Se houver código OpenSCAD gerado, renderiza o bloco de código e o botão open-source
                     if (data.codigo_scad && data.codigo_scad.length > 0) {
                         const codeBox = document.createElement('div');
                         codeBox.className = 'code-block';
                         codeBox.innerText = data.codigo_scad;
                         teacherWrapper.querySelector('.msg').appendChild(codeBox);
 
-                        // Criação dinâmica do arquivo .scad open-source para download direto
+                        // Geração automática do arquivo .scad open-source para download instantâneo
                         const blob = new Blob([data.codigo_scad], { type: 'text/plain' });
                         const blobUrl = URL.createObjectURL(blob);
 
