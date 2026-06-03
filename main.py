@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inicia o cliente da API do Groq utilizando a chave configurada no Render
+# Inicia o cliente da API do Groq utilizando a nova chave configurada no Render
 client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 # Filtros de Segurança e Moderação Escolar da SEDUC
@@ -68,7 +68,7 @@ async def generate_mvp_endpoint(request: MvpRequest):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.user_prompt}
             ],
-            model="llama-3.2-11b-vision-preview",
+            model="llama-3.3-70b-specdec", # Modelo atualizado e ativo no Groq
             temperature=0.2
         )
         full_response = chat_completion.choices[0].message.content
@@ -80,7 +80,7 @@ async def generate_mvp_endpoint(request: MvpRequest):
             parts = full_response.split("[DIVISOR_CODIGO]")
             justificativa = parts[0].strip()
             codigo_scad = parts[1].strip()
-            # Remove possíveis blocos de markdown que a IA coloque por vício
+            # Limpeza de formatação markdown indesejada da IA
             codigo_scad = codigo_scad.replace("```scad", "").replace("```openscad", "").replace("```", "").strip()
         else:
             justificativa = full_response
