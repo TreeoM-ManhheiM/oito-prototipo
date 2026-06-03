@@ -68,7 +68,7 @@ async def generate_mvp_endpoint(request: MvpRequest):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": request.user_prompt}
             ],
-            model="llama3-8b-8192", # Modelo atualizado e ativo no Groq
+            model="llama-3.1-8b-instant", # Modelo atualizado e ativo no Groq
             temperature=0.2
         )
         full_response = chat_completion.choices[0].message.content
