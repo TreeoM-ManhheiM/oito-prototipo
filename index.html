@@ -1,304 +1,211 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Gerador STL 3D</title>
-
-<style>
-
-body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#f5f7fa;
-}
-
-header{
-    background:#fff;
-    padding:15px;
-    border-bottom:1px solid #ddd;
-}
-
-h1{
-    margin:0;
-    color:#1e7e34;
-}
-
-#chat-container{
-    padding:20px;
-}
-
-.msg{
-    background:white;
-    padding:15px;
-    border-radius:8px;
-    margin-bottom:15px;
-    border:1px solid #ddd;
-}
-
-#controls{
-    padding:20px;
-    background:white;
-    border-top:1px solid #ddd;
-}
-
-input{
-    width:70%;
-    padding:12px;
-}
-
-button{
-    padding:12px 20px;
-    background:#1e7e34;
-    color:white;
-    border:none;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#165d28;
-}
-
-.download-btn{
-    display:inline-block;
-    margin-top:15px;
-    padding:10px 20px;
-    background:#1e7e34;
-    color:white;
-    text-decoration:none;
-    border-radius:6px;
-    font-weight:bold;
-}
-
-#viewer3d{
-    width:100%;
-    height:500px;
-    margin-top:20px;
-    border:1px solid #ccc;
-    background:white;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oito Protótipos - Prototipagem 3D Open Source</title>
+    <!-- Bibliotecas Three.js para o Visualizador 3D -->
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js](https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js)"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js)"></script>
+    <script src="[https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js](https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js)"></script>
+    
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f7f9fa; color: #2c3e50; padding: 0; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        header { background-color: #ffffff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e1e8ed; z-index: 10; }
+        h1 { margin: 0; color: #1e7e34; font-size: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .clear-btn { background: #e74c3c; color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 11px; }
+        #chat-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 100%; animation: fadeIn 0.2s ease; }
+        .msg-wrapper.user { align-self: flex-end; align-items: flex-end; max-width: 80%; }
+        .msg-wrapper.teacher { align-self: flex-start; align-items: flex-start; width: 100%; }
+        .msg { padding: 14px; border-radius: 6px; font-size: 14px; line-height: 1.6; word-wrap: break-word; width: 100%; box-sizing: border-box; }
+        .user .msg { background: #ebf5ff; color: #2b6cb0; border: 1px solid #bee3f8; font-weight: bold; }
+        .teacher .msg { background: #ffffff; color: #1a202c; border: 1px solid #b2c2d1; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .download-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; background: #2980b9; color: white; border: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; text-decoration: none; }
+        .download-btn:hover { background: #1f6391; }
+        .label { font-size: 10px; color: #718096; margin-bottom: 3px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+        #controls { padding: 15px 20px 25px 20px; background-color: #ffffff; border-top: 2px solid #e1e8ed; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .text-input-group { display: flex; gap: 8px; width: 100%; max-width: 600px; margin: 0 auto; }
+        .text-input-group input { flex: 1; padding: 12px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 14px; }
+        .text-input-group button { background: #1e7e34; color: white; border: none; padding: 0 20px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        #status { font-size: 12px; color: #4a5568; font-weight: bold; min-height: 18px; }
+        
+        /* Estilo do Visualizador 3D */
+        .viewer-3d { width: 100%; height: 350px; background: radial-gradient(circle, #ffffff 0%, #e0e0e0 100%); border-radius: 8px; margin-top: 15px; border: 1px solid #cbd5e0; overflow: hidden; cursor: grab; position: relative; }
+        .viewer-3d:active { cursor: grabbing; }
+        .viewer-hint { position: absolute; top: 10px; left: 10px; font-size: 11px; background: rgba(0,0,0,0.5); color: white; padding: 4px 8px; border-radius: 4px; pointer-events: none; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
-
 <body>
 
-<header>
-    <h1>🚀 Gerador de Modelos STL</h1>
-</header>
+    <header>
+        <h1>OITO PROTÓTIPOS - ENGENHARIA DE PROTÓTIPOS 3D 🛠️</h1>
+        <button class="clear-btn" onclick="clearChat()">Limpar Prancheta</button>
+    </header>
 
-<div id="chat-container"></div>
+    <div id="chat-container">
+        <div class="msg-wrapper teacher">
+            <span class="label">Sistema</span>
+            <div class="msg">Bem-vindo ao laboratório. Digite a ideia do produto para gerar a análise, o modelo e visualizá-lo em 3D.</div>
+        </div>
+    </div>
 
-<div id="viewer3d"></div>
+    <div id="controls">
+        <div id="status">Pronto para modelagem.</div>
+        <div class="text-input-group">
+            <input type="text" id="mvpPrompt" placeholder="Ex: Chaveiro corporativo retangular...">
+            <button onclick="generateMvp()">Gerar Modelo</button>
+        </div>
+    </div>
 
-<div id="controls">
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const status = document.getElementById('status');
+        const defaultInstructions = chatContainer.innerHTML;
 
-    <input
-        type="text"
-        id="mvpPrompt"
-        placeholder="Ex: chaveiro com nome André"
-    >
+        function clearChat() { chatContainer.innerHTML = defaultInstructions; status.innerText = "Pronto."; }
 
-    <button onclick="generateMvp()">
-        Gerar STL
-    </button>
-
-</div>
-
-://unpkg.com/three@0.160.0/build/three.min.js"></script>
-://unpkg.com/three@0.160.0/examples/js/loaders/STLLoader.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-
-ocument.getElementById("chat-container");
-
-function addMessage(text){
-
-    const div = document.createElement("div");
-
-    div.className = "msg";
-    div.innerText = text;
-
-    chat.appendChild(div);
-}
-
-async function generateMvp(){
-
-    const prompt = document
-        .getElementById("mvpPrompt")
-        .value
-        .trim();
-
-    if(!prompt){
-        return;
-    }
-
-    try{
-
-        const response = await fetch("/generate-mvp",{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                user_prompt:prompt
-            })
-        });
-
-        const data = await response.json();
-
-        if(!data.success){
-
-            addMessage(data.error);
-            return;
+        function addMessage(text, sender, labelName) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-wrapper ${sender}`;
+            const lbl = document.createElement('span'); lbl.className = 'label'; lbl.innerText = labelName;
+            const msg = document.createElement('div'); msg.className = 'msg'; msg.innerText = text;
+            wrapper.appendChild(lbl); wrapper.appendChild(msg);
+            chatContainer.appendChild(wrapper);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return wrapper;
         }
 
-        addMessage(data.justificativa);
-
-        const oldBtn =
-            document.getElementById("downloadBtn");
-
-        if(oldBtn){
-            oldBtn.remove();
+        // Função para converter Base64 do Python de volta para arquivo Blob STL
+        function base64ToBlob(base64, type) {
+            const binStr = atob(base64);
+            const len = binStr.length;
+            const arr = new Uint8Array(len);
+            for (let i = 0; i < len; i++) { arr[i] = binStr.charCodeAt(i); }
+            return new Blob([arr], { type: type });
         }
 
-        const link = document.createElement("a");
+        // Motor de renderização Three.js (Estilo Thingiverse)
+        function init3DViewer(container, stlUrl) {
+            const hint = document.createElement('div');
+            hint.className = 'viewer-hint';
+            hint.innerText = "🖱️ Clique e arraste para rotacionar | ⚙️ Scroll para Zoom";
+            container.appendChild(hint);
 
-        link.id = "downloadBtn";
-        link.className = "download-btn";
-        link.href = data.arquivo_stl_url;
-        link.download = "modelo.stl";
-        link.innerText = "📥 Baixar STL";
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true; // Rotaciona lentamente para apresentação
+            controls.autoRotateSpeed = 2.0;
 
-        chat.appendChild(link);
-
-        visualizarSTL(data.arquivo_stl_url);
-
-    }
-    catch(e){
-
-        addMessage("Erro ao gerar modelo.");
-    }
-}
-
-function visualizarSTL(url){
-
-    const container =
-        document.getElementById("viewer3d");
-
-    container.innerHTML = "";
-
-    const scene = new THREE.Scene();
-
-    scene.background =
-        new THREE.Color(0xf5f5f5);
-
-    const camera =
-        new THREE.PerspectiveCamera(
-            75,
-            container.clientWidth /
-            container.clientHeight,
-            0.1,
-            1000
-        );
-
-    const renderer =
-        new THREE.WebGLRenderer({
-            antialias:true
-        });
-
-    renderer.setSize(
-        container.clientWidth,
-        container.clientHeight
-    );
-
-    container.appendChild(
-        renderer.domElement
-    );
-
-    const ambient =
-        new THREE.AmbientLight(
-            0xffffff,
-            2
-        );
-
-    scene.add(ambient);
-
-    const directional =
-        new THREE.DirectionalLight(
-            0xffffff,
-            3
-        );
-
-    directional.position.set(
-        10,
-        15,
-        10
-    );
-
-    scene.add(directional);
-
-    const loader =
-        new THREE.STLLoader();
-
-    loader.load(url,function(geometry){
-
-        const material =
-            new THREE.MeshPhongMaterial({
-                color:0x1e7e34
+            // Iluminação
+            scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.0));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(100, 100, 50);
+            scene.add(dirLight);
+            const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight2.position.set(-100, -100, -50);
+            scene.add(dirLight2);
+            
+            // Carrega e exibe o STL
+            const loader = new THREE.STLLoader();
+            loader.load(stlUrl, function (geometry) {
+                const material = new THREE.MeshPhongMaterial({ color: 0x1e7e34, specular: 0x222222, shininess: 100 });
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                geometry.computeBoundingBox();
+                const center = new THREE.Vector3();
+                geometry.boundingBox.getCenter(center);
+                mesh.position.sub(center); // Centraliza no eixo
+                
+                // Rotaciona o eixo Z (comum do OpenSCAD) para o eixo Y do Three.js
+                mesh.rotation.x = -Math.PI / 2;
+                
+                scene.add(mesh);
+                
+                const size = geometry.boundingBox.getSize(new THREE.Vector3()).length();
+                camera.position.set(0, size * 0.5, size * 1.2);
+                controls.update();
             });
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
 
-        const mesh =
-            new THREE.Mesh(
-                geometry,
-                material
-            );
-
-        geometry.computeBoundingBox();
-
-        const center =
-            geometry.boundingBox.getCenter(
-                new THREE.Vector3()
-            );
-
-        geometry.translate(
-            -center.x,
-            -center.y,
-            -center.z
-        );
-
-        scene.add(mesh);
-
-        camera.position.z = 120;
-
-        const controls =
-            new THREE.OrbitControls(
-                camera,
-                renderer.domElement
-            );
-
-        function animate(){
-
-            requestAnimationFrame(
-                animate
-            );
-
-            controls.update();
-
-            renderer.render(
-                scene,
-                camera
-            );
+            // Responsividade da tela de render
+            window.addEventListener('resize', () => {
+                if(container.clientWidth){
+                    camera.aspect = container.clientWidth / container.clientHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(container.clientWidth, container.clientHeight);
+                }
+            });
         }
 
-        animate();
-    });
-}
+        async function generateMvp() {
+            const promptInput = document.getElementById('mvpPrompt');
+            const promptVal = promptInput.value.trim();
+            if (!promptVal) return;
 
-</script>
+            status.innerText = "Processando geometria, renderizando STL e analisando mercado... ⚙️";
+            addMessage(promptVal, 'user', 'Solicitação do Aluno');
+            promptInput.value = '';
 
+            try {
+                const response = await fetch('/generate-mvp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_prompt: promptVal })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const teacherWrapper = addMessage(data.justificativa, 'teacher', 'Análise Comercial do MVP');
+                    
+                    if (data.stl_base64) {
+                        // Gera o arquivo STL em memória
+                        const stlBlob = base64ToBlob(data.stl_base64, 'model/stl');
+                        const stlUrl = URL.createObjectURL(stlBlob);
+
+                        // Cria a janela de Visualização 3D
+                        const viewerDiv = document.createElement('div');
+                        viewerDiv.className = 'viewer-3d';
+                        teacherWrapper.querySelector('.msg').appendChild(viewerDiv);
+                        
+                        // Botão de Download do STL
+                        const downloadLink = document.createElement('a');
+                        downloadLink.className = 'download-btn';
+                        downloadLink.href = stlUrl;
+                        downloadLink.download = 'MVP_Prototipo.stl';
+                        downloadLink.innerHTML = '🔽 Baixar Modelo 3D (.STL)';
+                        teacherWrapper.querySelector('.msg').appendChild(document.createElement('br'));
+                        teacherWrapper.querySelector('.msg').appendChild(downloadLink);
+
+                        // Inicializa o Renderizador Interativo
+                        init3DViewer(viewerDiv, stlUrl);
+                        status.innerText = "Modelo renderizado com sucesso. Interaja com o 3D abaixo!";
+                    } else if (data.codigo_scad) {
+                        status.innerText = "Modelo gerado apenas em código (falha ao converter STL no servidor).";
+                    }
+                } else {
+                    addMessage(data.error, 'teacher', 'Filtro do Sistema');
+                    status.innerText = "Geração interrompida por segurança.";
+                }
+            } catch (e) {
+                status.innerText = "Erro ao conectar com o motor geométrico.";
+            }
+        }
+    </script>
 </body>
 </html>
