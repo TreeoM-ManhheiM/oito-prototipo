@@ -46,23 +46,33 @@ async def generate_mvp_endpoint(request: MvpRequest):
         }
     
     system_prompt = """
-    Você é um Engenheiro de Prototipagem especialista em OpenSCAD para a ementa de Inovação e Empreendedorismo.
-    Sua função é receber a ideia de um aluno e gerar exclusivamente a análise de negócios do MVP e o script OpenSCAD funcional.
+    Você é um Engenheiro de Prototipagem e Professor especialista em OpenSCAD, atuando no laboratório de Inovação e Empreendedorismo da SEDUC.
+    Sua função é receber a ideia de um aluno de Ensino Médio/Ciência de Dados e gerar exclusivamente a análise de negócios do MVP e o script OpenSCAD funcional.
 
-    REGRA DE CONTEXTO COMERCIAL:
-    Se o objeto pedido não tiver aplicação, recuse a geração.
+    🚨 REGRAS DE SEGURANÇA E ESCOPO EDUCACIONAL:
+    - RECUSE IMEDIATAMENTE qualquer pedido envolvendo armas, violência, drogas, conteúdo erótico ou brincadeiras sem foco pedagógico/comercial.
+    - Se recusar, utilize a justificativa para dar uma orientação educacional firme e peça uma nova ideia válida. Deixe a área do código em branco.
+
+    🚨 REGRAS TÉCNICAS DE DESIGN E GEOMETRIA 3D (MUITO IMPORTANTE):
+    - OBRIGATÓRIO: Inicie SEMPRE o código OpenSCAD com a linha: $fn = 100; (isso garante bordas lisas e resolução profissional).
+    - Crie geometrias sólidas e limpas. Use primitivas (cube, cylinder, sphere) ou a função hull() para bordas arredondadas.
+    - Se o pedido exigir furos ou encaixes (ex: chaveiros, suportes), use a função difference() com cálculo de eixos preciso.
+    - É ESTRITAMENTE PROIBIDO usar crases de formatação Markdown (como ```scad) dentro da seção de código.
+    - Todas as instruções OpenSCAD DEVEM terminar com ponto e vírgula (;).
 
     Sua resposta DEVE seguir estritamente essa estrutura dividida pela marcação [DIVISOR_CODIGO]:
     
     Empreendedorismo e Justificativa Comercial do MVP:
-    (Explique aqui em poucas linhas como este objeto serve como MVP, validação de mercado ou brinde da marca).
+    (Explique em poucas linhas como este objeto serve como MVP ou justifique a recusa).
 
     [DIVISOR_CODIGO]
-    // Apenas o código OpenSCAD limpo a partir daqui.
-    // É ESTRITAMENTE PROIBIDO usar crases de formatação Markdown (como ```scad).
-    // REGRA DE OURO: Crie geometrias SIMPLES, SÓLIDAS e BÁSICAS. Não invente polígonos complexos, intersecções confusas ou rotações que quebrem a malha.
-    // Use apenas formas primitivas diretas (cube, cylinder, sphere). 
-    // O código DEVE ser válido, terminando todas as instruções com ponto e vírgula (;).
+    // O código OpenSCAD limpo começa aqui.
+    // Exemplo de chaveiro liso com furo:
+    // $fn = 100;
+    // difference() {
+    //    cube([50, 30, 3], center=true);
+    //    translate([20, 0, 0]) cylinder(h=10, r=2, center=true);
+    // }
     """
 
     try:
@@ -72,7 +82,7 @@ async def generate_mvp_endpoint(request: MvpRequest):
                 {"role": "user", "content": request.user_prompt}
             ],
             model="llama-3.1-8b-instant",
-            temperature=0.2
+            temperature=0.1
         )
         full_response = chat_completion.choices[0].message.content
 
@@ -85,27 +95,32 @@ async def generate_mvp_endpoint(request: MvpRequest):
 
         # CONVERSÃO SCAD PARA STL NO SERVIDOR
         stl_base64 = None
+        scad_path = None
+        stl_path = None
+
         try:
-            # Cria arquivos temporários
             with tempfile.NamedTemporaryFile(suffix=".scad", delete=False) as f_scad:
                 f_scad.write(codigo_scad.encode('utf-8'))
                 scad_path = f_scad.name
             
             stl_path = scad_path.replace(".scad", ".stl")
             
-            # Executa o OpenSCAD via linha de comando
+            # Compila o STL
             subprocess.run(["openscad", "-o", stl_path, scad_path], check=True, capture_output=True)
             
-            # Lê o STL gerado e converte para Base64 para enviar via JSON ao index.html
+            # Converte para Base64
             with open(stl_path, "rb") as f_stl:
                 stl_base64 = base64.b64encode(f_stl.read()).decode('utf-8')
                 
-            # Limpeza
-            os.remove(scad_path)
-            os.remove(stl_path)
         except Exception as conv_e:
             print(f"Erro na conversão STL: {conv_e}")
-            pass 
+            stl_base64 = None
+        finally:
+            # Limpeza garantida de arquivos temporários
+            if scad_path and os.path.exists(scad_path):
+                os.remove(scad_path)
+            if stl_path and os.path.exists(stl_path):
+                os.remove(stl_path)
 
         return {
             "success": True,
