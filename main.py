@@ -50,7 +50,7 @@ async def generate_mvp_endpoint(request: MvpRequest):
     Sua função é receber a ideia de um aluno e gerar exclusivamente a análise de negócios do MVP e o script OpenSCAD funcional.
 
     REGRA DE CONTEXTO COMERCIAL:
-    Se o objeto pedido não tiver aplicação comercial/industrial ou pedagógica, recuse a geração solicitando que justifiquem a startup.
+    Se o objeto pedido não tiver aplicação, recuse a geração.
 
     Sua resposta DEVE seguir estritamente essa estrutura dividida pela marcação [DIVISOR_CODIGO]:
     
@@ -58,8 +58,11 @@ async def generate_mvp_endpoint(request: MvpRequest):
     (Explique aqui em poucas linhas como este objeto serve como MVP, validação de mercado ou brinde da marca).
 
     [DIVISOR_CODIGO]
-    // Apenas o código OpenSCAD limpo a partir daqui
-    (Insira o código completo OpenSCAD usando geometrias como cube, cylinder, sphere, union, difference, text. Proporções até 100mm. Não use acentos no text).
+    // Apenas o código OpenSCAD limpo a partir daqui.
+    // É ESTRITAMENTE PROIBIDO usar crases de formatação Markdown (como ```scad).
+    // REGRA DE OURO: Crie geometrias SIMPLES, SÓLIDAS e BÁSICAS. Não invente polígonos complexos, intersecções confusas ou rotações que quebrem a malha.
+    // Use apenas formas primitivas diretas (cube, cylinder, sphere). 
+    // O código DEVE ser válido, terminando todas as instruções com ponto e vírgula (;).
     """
 
     try:
